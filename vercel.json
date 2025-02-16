@@ -13,6 +13,7 @@
     }
   ],
   "env": {
-    "PYTHONPATH": "."
+    "PYTHONPATH": ".",
+    "REDIS_URL": "@redis_url"
   }
 }

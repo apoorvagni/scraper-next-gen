@@ -14,7 +14,7 @@ This project is a Python-based RSS feed scraper that collects news articles and 
 
 1. Install the required packages:
    ```bash
-   pip3 install feedparser requests
+   pip install -r requirements.txt
    ```
 
 2. Run the scraper:

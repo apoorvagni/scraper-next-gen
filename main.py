@@ -7,6 +7,7 @@ import pathlib
 import requests
 from difflib import SequenceMatcher
 from serpapi import GoogleSearch
+from database import RedisDB
 
 # Set up logging
 logging.basicConfig(
@@ -190,6 +191,16 @@ def cleanup_old_files(output_dir="output", days=3):
     except Exception as e:
         logging.error(f"Error cleaning up old files: {str(e)}")
 
+def save_to_database(articles):
+    """Save scraped articles to Redis"""
+    try:
+        db = RedisDB()
+        saved_count = db.save_articles(articles)
+        logging.info(f"Successfully saved {saved_count} articles to Redis")
+    except Exception as e:
+        logging.error(f"Error saving to database: {str(e)}")
+        raise e
+
 def main():
     """Main function to run all scrapers and sort articles based on trending metrics"""
     logging.info("Starting RSS feed scraping")
@@ -229,8 +240,8 @@ def main():
         unique_articles.sort(key=lambda a: a.get("rank", float('inf')))
         
         try:
-            output_file = save_to_csv(unique_articles)
-            logging.info(f"All trending articles saved to {output_file}")
+            save_to_database(unique_articles)
+            logging.info(f"All trending articles saved to database")
         except Exception as e:
             logging.error(f"Failed to save articles: {str(e)}")
 

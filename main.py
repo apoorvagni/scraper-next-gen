@@ -14,8 +14,7 @@ logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('rss_scraper.log'),
-        logging.StreamHandler()
+        logging.StreamHandler()  # Log to console instead of a file
     ]
 )
 

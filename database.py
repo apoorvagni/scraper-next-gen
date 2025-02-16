@@ -12,30 +12,32 @@ class RedisDB:
         
         self.redis_client = redis.from_url(redis_url)
         self.ARTICLES_KEY = "news_articles"
+        self.CURRENT_KEY = "current_articles"  # New key for current articles
         self.EXPIRY_DAYS = 3
 
     def save_articles(self, articles):
         """Save articles to Redis"""
         try:
-            # Add timestamp to each article
-            timestamp = datetime.utcnow().isoformat()
-            key = f"{self.ARTICLES_KEY}:{timestamp}"
+            # Save current articles with newsId as key
+            pipeline = self.redis_client.pipeline()
             
-            # Convert articles to JSON string
-            articles_json = json.dumps([
-                {**article, 'stored_at': timestamp}
+            # Clear previous day's data
+            pipeline.delete(self.CURRENT_KEY)
+            
+            # Save new articles
+            articles_dict = {
+                article['newsId']: json.dumps({
+                    **article,
+                    'stored_at': datetime.utcnow().isoformat()
+                })
                 for article in articles
-            ])
+            }
             
-            # Save to Redis with expiration
-            self.redis_client.setex(
-                key,
-                timedelta(days=self.EXPIRY_DAYS),
-                articles_json
-            )
+            if articles_dict:
+                pipeline.hset(self.CURRENT_KEY, mapping=articles_dict)
             
-            # Save the key to a list of all article keys
-            self.redis_client.lpush(f"{self.ARTICLES_KEY}:keys", key)
+            # Execute all commands
+            pipeline.execute()
             
             logging.info(f"Successfully saved {len(articles)} articles to Redis")
             return len(articles)
@@ -45,22 +47,22 @@ class RedisDB:
             raise e
 
     def get_latest_articles(self):
-        """Get the most recent articles"""
+        """Get the current articles"""
         try:
-            # Get the most recent key
-            latest_key = self.redis_client.lindex(f"{self.ARTICLES_KEY}:keys", 0)
-            if not latest_key:
-                return []
-                
-            articles_json = self.redis_client.get(latest_key)
-            if not articles_json:
-                return []
-                
-            return json.loads(articles_json)
-            
+            articles_dict = self.redis_client.hgetall(self.CURRENT_KEY)
+            return [json.loads(article) for article in articles_dict.values()]
         except Exception as e:
             logging.error(f"Error retrieving from Redis: {str(e)}")
             return []
+
+    def get_article_by_id(self, news_id):
+        """Get specific article by newsId"""
+        try:
+            article_json = self.redis_client.hget(self.CURRENT_KEY, news_id)
+            return json.loads(article_json) if article_json else None
+        except Exception as e:
+            logging.error(f"Error retrieving article by ID: {str(e)}")
+            return None
 
     def cleanup_old_articles(self):
         """Redis automatically handles cleanup through key expiration"""

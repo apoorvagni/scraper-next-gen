@@ -220,11 +220,12 @@ def main():
             articles = scraper.scrape()
             trending_articles = []
             for article in articles:
-                # Get trending metrics for the article;
-                # Only include it if a matching topic is found using the API rank.
                 topic = get_article_trending_metrics(article, trending_topics)
                 if topic:
-                    article["rank"] = topic["rank"]
+                    # Generate a unique newsId using timestamp and a hash of the title
+                    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                    article_hash = str(hash(article['title']))[-4:]  # Last 4 digits of title hash
+                    article["newsId"] = f"NEWS_{timestamp}_{article_hash}"
                     trending_articles.append(article)
             all_articles.extend(trending_articles)
             logging.info(f"Found {len(trending_articles)} trending articles out of {len(articles)} from {scraper.name}")
@@ -234,9 +235,6 @@ def main():
     if all_articles:
         unique_articles = remove_duplicates(all_articles)
         logging.info(f"Removed {len(all_articles) - len(unique_articles)} duplicate articles")
-        
-        # Sort articles based on their trend rank (lower rank = higher trending)
-        unique_articles.sort(key=lambda a: a.get("rank", float('inf')))
         
         try:
             save_to_database(unique_articles)

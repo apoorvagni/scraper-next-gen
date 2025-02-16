@@ -77,6 +77,14 @@ def get_sources():
     db = RedisDB()
     return jsonify(db.get_sources_list())
 
+@app.route('/api/articles/<news_id>', methods=['GET'])
+def get_article_by_id(news_id):
+    db = RedisDB()
+    article = db.get_article_by_id(news_id)
+    if article:
+        return jsonify(article)
+    return jsonify({"error": "Article not found"}), 404
+
 # Remove or modify this part
 if __name__ == '__main__':
     # Only use this for local development

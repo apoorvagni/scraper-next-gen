@@ -78,13 +78,16 @@ class RedisDB:
             return []
 
     def get_top_trending_articles(self, limit=10):
-        """Get top trending articles sorted by rank"""
+        """Get most recent articles, limited by count"""
         try:
             latest_articles = self.get_latest_articles()
-            sorted_articles = sorted(latest_articles, key=lambda x: x.get('rank', float('inf')))
+            # Sort by stored_at timestamp in descending order (newest first)
+            sorted_articles = sorted(latest_articles, 
+                                   key=lambda x: x.get('stored_at', ''), 
+                                   reverse=True)
             return sorted_articles[:limit]
         except Exception as e:
-            logging.error(f"Error getting top trending articles: {str(e)}")
+            logging.error(f"Error getting top articles: {str(e)}")
             return []
 
     def get_sources_list(self):

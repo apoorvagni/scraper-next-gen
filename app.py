@@ -1,4 +1,5 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from main import main as scrape_engine
 import threading
 import schedule
@@ -8,6 +9,16 @@ import pytz
 from database import RedisDB
 
 app = Flask(__name__)
+
+# Enable CORS for all routes
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["*"],
+        "methods": ["POST", "GET", "OPTIONS"],
+        "allow_headers": "*",
+        "expose_headers": "*",
+    }
+})
 
 # Store the last scraped results
 last_scraped_data = None
@@ -66,5 +77,7 @@ def get_sources():
     db = RedisDB()
     return jsonify(db.get_sources_list())
 
+# Remove or modify this part
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000) 
+    # Only use this for local development
+    app.run(debug=True) 

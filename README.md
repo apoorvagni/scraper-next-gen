@@ -22,3 +22,17 @@ This project is a Python-based RSS feed scraper that collects news articles and 
    python3 main.py
    ```
 
+## API curl commands
+
+curl -X GET http://localhost:8000/api/articles
+
+curl -X GET https://scraper-next-gen.vercel.app/api/scrape
+
+curl -X GET https://scraper-next-gen.vercel.app/api/articles
+
+curl -X GET https://scraper-next-gen.vercel.app/api/articles/trending?limit=5
+
+curl -X GET https://scraper-next-gen.vercel.app/api/articles/source/Hindustan%20Times
+
+curl -X GET https://scraper-next-gen.vercel.app/api/health
+

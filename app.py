@@ -58,8 +58,29 @@ def health_check():
 
 @app.route('/api/articles', methods=['GET'])
 def get_articles():
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=6, type=int)
+    
     db = RedisDB()
-    return jsonify(db.get_latest_articles())
+    all_articles = db.get_latest_articles()
+    
+    # Calculate start and end indices for pagination
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    
+    paginated_articles = all_articles[start_idx:end_idx]
+    total_articles = len(all_articles)
+    total_pages = (total_articles + per_page - 1) // per_page
+    
+    return jsonify({
+        'articles': paginated_articles,
+        'pagination': {
+            'current_page': page,
+            'per_page': per_page,
+            'total_articles': total_articles,
+            'total_pages': total_pages
+        }
+    })
 
 @app.route('/api/articles/trending', methods=['GET'])
 def get_trending():

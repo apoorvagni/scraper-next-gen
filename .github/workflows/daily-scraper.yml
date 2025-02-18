@@ -1,0 +1,20 @@
+name: Daily News Scraper
+
+on:
+  schedule:
+    - cron: '0 22 * * *'  # Runs at 22:00 UTC (4:00 AM IST)
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+  trigger-scraper:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Scraper API
+        run: |
+          response=$(curl -X GET https://scraper-next-gen.vercel.app/api/scrape)
+          echo "Scraper Response: $response"
+      - name: Check Response
+        if: ${{ failure() }}
+        run: |
+          echo "Scraper API call failed"
+          exit 1
